@@ -144,7 +144,7 @@ async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, promp
   // Map the strength (10 to 100) to controlnet strength ratio (0 to 1.5)
   // Standard default is 0.8. We map it proportionally: strength / 100
   const controlnetStrength = hasPoseRef ? (strength / 100) : 0.0;
-  const controlnetSelection = hasPoseRef ? ["depth"] : [];
+  const controlnetSelection = hasPoseRef ? ["canny", "depth"] : [];
 
   // Construct a rich, photorealistic prompt emphasizing keeping background and outfit
   const basePrompt = prompt || "standing confidently, looking at the camera";
@@ -155,7 +155,7 @@ async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, promp
     face_image_path: faceFile,
     pose_image_path: poseFile,
     prompt: enhancedPrompt,
-    negative_prompt: "anime, cartoon, animation, illustration, 3d render, painting, drawing, sketch, deformed, ugly, blurry, out of focus, lowres, low quality, worst quality:1.2, watermark, text",
+    negative_prompt: "anime, cartoon, animation, illustration, 3d render, painting, drawing, sketch, deformed, ugly, blurry, out of focus, lowres, low quality, worst quality:1.2, watermark, text, bad anatomy, bad proportions, deformed limbs, extra limbs, extra fingers, mutated hands, disfigured, missing limbs, disconnected limbs, floating limbs",
     style_name: "(No style)",
     num_steps: 30,
     identitynet_strength_ratio: 0.8,

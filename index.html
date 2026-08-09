@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repose — change the pose, keep the person</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14141A;
+    --surface:#1D1D24;
+    --surface-2:#25252E;
+    --line:#33333F;
+    --text:#F1F0EC;
+    --muted:#8A8A93;
+    --accent:#FF5A3C;
+    --accent-dim:#B8402A;
+    --teal:#34D1BF;
+    --danger:#FF6767;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(255,90,60,0.07), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(52,209,191,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- Nav ---------- */
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 32px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:rgba(20,20,26,0.85);backdrop-filter:blur(8px);z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{width:26px;height:26px;flex-shrink:0;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;letter-spacing:-0.01em;}
+  .brand-tag{color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;display:none;}
+  @media(min-width:640px){.brand-tag{display:inline;margin-left:6px;padding-left:10px;border-left:1px solid var(--line);}}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    max-width:1180px;margin:0 auto;padding:56px 32px 28px;
+    display:flex;align-items:center;justify-content:space-between;gap:40px;flex-wrap:wrap;
+  }
+  .hero h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;
+    font-size:clamp(28px,4vw,42px);line-height:1.08;letter-spacing:-0.01em;margin:0 0 12px;
+    max-width:560px;
+  }
+  .hero h1 em{color:var(--accent);font-style:normal;}
+  .hero p{color:var(--muted);font-size:15px;line-height:1.6;max-width:460px;margin:0;}
+  .hero-visual{width:180px;height:180px;flex-shrink:0;}
+
+  /* ---------- Workspace ---------- */
+  .workspace{
+    max-width:1180px;margin:0 auto;padding:0 32px 80px;
+    display:grid;grid-template-columns:380px 1fr;gap:24px;
+  }
+  @media(max-width:920px){.workspace{grid-template-columns:1fr;}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;
+  }
+  .panel + .panel{margin-top:20px;}
+  .panel-label{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .panel-label .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+
+  /* ---------- Dropzone ---------- */
+  .dropzone{
+    border:1.5px dashed var(--line);border-radius:var(--radius);
+    min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:16px;cursor:pointer;transition:border-color .15s, background .15s;
+    position:relative;overflow:hidden;background:var(--surface-2);
+  }
+  .dropzone:hover, .dropzone.drag{border-color:var(--accent);background:rgba(255,90,60,0.06);}
+  .dropzone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .dropzone .hint{color:var(--muted);font-size:12.5px;line-height:1.5;}
+  .dropzone .hint b{color:var(--text);font-weight:500;}
+  .dropzone .remove{
+    position:absolute;top:8px;right:8px;background:rgba(20,20,26,0.75);border:1px solid var(--line);
+    color:var(--text);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:14px;z-index:2;
+  }
+  .dropzone .remove:hover{background:var(--danger);border-color:var(--danger);}
+  .upload-icon{width:22px;height:22px;color:var(--muted);margin-bottom:8px;}
+
+  .field-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .field-title{font-size:13.5px;font-weight:500;}
+  .optional-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted);border:1px solid var(--line);padding:1px 7px;border-radius:20px;}
+
+  textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);
+    color:var(--text);font-family:'Inter',sans-serif;font-size:13.5px;padding:12px;resize:vertical;min-height:88px;
+    line-height:1.5;
+  }
+  textarea:focus{outline:none;border-color:var(--accent);}
+  textarea::placeholder{color:#5c5c66;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);padding:5px 9px;border-radius:20px;cursor:pointer;background:transparent;
+    transition:border-color .15s, color .15s;
+  }
+  .chip:hover{border-color:var(--teal);color:var(--teal);}
+
+  .slider-row{margin-top:16px;}
+  .slider-row label{font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px;}
+  .slider-row .mono{color:var(--text);}
+  input[type=range]{width:100%;accent-color:var(--accent);}
+
+  .generate-btn{
+    width:100%;margin-top:18px;padding:14px;border:none;border-radius:var(--radius);
+    background:var(--accent);color:#151016;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:background .15s, transform .1s;
+  }
+  .generate-btn:hover:not(:disabled){background:#ff6c50;}
+  .generate-btn:active:not(:disabled){transform:scale(0.99);}
+  .generate-btn:disabled{background:var(--surface-2);color:var(--muted);cursor:not-allowed;}
+
+  .error-box{
+    margin-top:12px;padding:10px 12px;background:rgba(255,103,103,0.08);border:1px solid rgba(255,103,103,0.35);
+    border-radius:8px;color:#ffb0b0;font-size:12.5px;line-height:1.5;display:none;
+  }
+  .error-box.show{display:block;}
+
+  .secure-note{
+    display:flex;gap:8px;align-items:flex-start;margin-top:14px;color:var(--muted);font-size:11.5px;line-height:1.5;
+  }
+  .secure-note svg{flex-shrink:0;margin-top:1px;width:13px;height:13px;}
+
+  /* ---------- Preview ---------- */
+  .preview-panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;min-height:520px;display:flex;flex-direction:column;
+  }
+  .preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .preview-toggle{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:3px;}
+  .preview-toggle button{
+    background:none;border:none;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    padding:6px 12px;border-radius:6px;cursor:pointer;letter-spacing:0.03em;
+  }
+  .preview-toggle button.active{background:var(--accent);color:#151016;}
+
+  .download-btn{
+    display:flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--line);
+    color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif;font-weight:500;padding:8px 14px;
+    border-radius:8px;cursor:pointer;
+  }
+  .download-btn:hover:not(:disabled){border-color:var(--teal);color:var(--teal);}
+  .download-btn:disabled{opacity:0.35;cursor:not-allowed;}
+  .download-btn svg{width:14px;height:14px;}
+
+  .stage{
+    flex:1;border-radius:8px;background:
+      linear-gradient(45deg, #1a1a21 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1a21 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1a21 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1a21 75%);
+    background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px;
+    background-color:#111116;
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;
+    min-height:400px;
+  }
+
+  .empty-state{text-align:center;color:var(--muted);padding:24px;}
+  .empty-state .skeleton-wrap{width:120px;height:120px;margin:0 auto 14px;opacity:0.6;}
+  .empty-state p{font-size:13px;line-height:1.6;max-width:280px;margin:0 auto;}
+
+  .compare-wrap{position:absolute;inset:0;display:none;}
+  .compare-wrap.active{display:block;}
+  .compare-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;pointer-events:none;}
+  .compare-wrap .after-clip{position:absolute;inset:0;overflow:hidden;width:100%;clip-path:polygon(0 0, 50% 0, 50% 100%, 0 100%);}
+  .compare-wrap .after-clip img{width:100%;height:100%;object-fit:contain;}
+  .compare-handle{
+    position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--accent);cursor:ew-resize;
+    transform:translateX(-1px);z-index:5;
+  }
+  .compare-handle::after{
+    content:'';position:absolute;top:50%;left:50%;width:34px;height:34px;border-radius:50%;
+    background:var(--accent);transform:translate(-50%,-50%);
+    box-shadow:0 0 0 4px rgba(255,90,60,0.18);
+  }
+  .compare-handle .arrows{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6;color:#151016;font-size:12px;
+    display:flex;gap:2px;pointer-events:none;
+  }
+  .compare-range{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0;z-index:6;}
+  .side-label{
+    position:absolute;top:10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.06em;
+    background:rgba(20,20,26,0.7);border:1px solid var(--line);padding:3px 8px;border-radius:20px;color:var(--muted);z-index:4;
+  }
+  .side-label.left{left:10px;}
+  .side-label.right{right:10px;}
+
+  .single-view{position:absolute;inset:0;display:none;}
+  .single-view.active{display:flex;align-items:center;justify-content:center;}
+  .single-view img{max-width:100%;max-height:100%;object-fit:contain;}
+
+  .loading-state{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(17,17,22,0.92);z-index:10;}
+  .loading-state.active{display:flex;}
+  .loading-skeleton{width:150px;height:150px;}
+  .loading-text{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);margin-top:14px;letter-spacing:0.03em;}
+  .loading-bar{width:180px;height:2px;background:var(--surface-2);border-radius:2px;margin-top:12px;overflow:hidden;}
+  .loading-bar-fill{height:100%;width:30%;background:var(--accent);border-radius:2px;animation:slide 1.3s ease-in-out infinite;}
+  @keyframes slide{0%{transform:translateX(-100%);}100%{transform:translateX(400%);}}
+
+  /* joint skeleton animation, used in hero + loading + empty state */
+  .joint{fill:var(--accent);}
+  .bone{stroke:var(--muted);stroke-width:2;}
+  .joint.teal{fill:var(--teal);}
+
+  footer{border-top:1px solid var(--line);padding:22px 32px;text-align:center;color:var(--muted);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+
+  @media(prefers-reduced-motion: reduce){
+    .loading-bar-fill{animation:none;}
+    * {transition:none !important;}
+  }
+
+  @media(max-width:640px){
+    header{padding:16px 18px;}
+    .hero{padding:36px 18px 16px;}
+    .hero-visual{display:none;}
+    .workspace{padding:0 18px 60px;}
+    .panel, .preview-panel{padding:16px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 26 26" fill="none">
+      <circle cx="13" cy="6" r="2.6" fill="#FF5A3C"/>
+      <line x1="13" y1="8.6" x2="13" y2="15" stroke="#8A8A93" stroke-width="1.6"/>
+      <line x1="13" y1="10.5" x2="6" y2="14" stroke="#8A8A93" stroke-width="1.6"/>
+      <line x1="13" y1="10.5" x2="20" y2="9" stroke="#8A8A93" stroke-width="1.6"/>
+      <line x1="13" y1="15" x2="7" y2="22" stroke="#8A8A93" stroke-width="1.6"/>
+      <line x1="13" y1="15" x2="18" y2="21" stroke="#8A8A93" stroke-width="1.6"/>
+      <circle cx="6" cy="14" r="1.8" fill="#34D1BF"/>
+      <circle cx="20" cy="9" r="1.8" fill="#34D1BF"/>
+      <circle cx="7" cy="22" r="1.8" fill="#34D1BF"/>
+      <circle cx="18" cy="21" r="1.8" fill="#34D1BF"/>
+    </svg>
+    <span class="brand-name">Repose</span>
+    <span class="brand-tag">pose transfer, identity preserved</span>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <h1>Change the <em>pose</em>.<br>Keep the person.</h1>
+    <p>Upload a photo, describe the new pose in plain words, and Repose rebuilds the body while locking the face, skin tone, outfit, and background in place.</p>
+  </div>
+  <svg class="hero-visual" viewBox="0 0 200 200" fill="none">
+    <g id="hero-skeleton"></g>
+  </svg>
+</section>
+
+<main class="workspace">
+  <!-- LEFT: controls -->
+  <div>
+    <div class="panel">
+      <div class="panel-label"><span class="dot"></span>01 — Source photo</div>
+      <div class="field-row"><span class="field-title">Person's photo</span></div>
+      <div class="dropzone" id="dz-source">
+        <input type="file" id="input-source" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="dz-content">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <div class="hint"><b>Click to upload</b> or drag a photo<br>JPG, PNG, WEBP · up to 10MB</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label"><span class="dot"></span>02 — Describe the pose</div>
+      <textarea id="input-prompt" placeholder="e.g. Standing with arms crossed, weight on the left leg, looking slightly over the right shoulder..."></textarea>
+      <div class="chips">
+        <button class="chip" type="button" data-fill="Standing confidently, hands on hips, chin slightly raised">hands on hips</button>
+        <button class="chip" type="button" data-fill="Mid-stride walking pose, arms swinging naturally">walking stride</button>
+        <button class="chip" type="button" data-fill="Seated on a stool, legs crossed, leaning slightly forward">seated, crossed legs</button>
+        <button class="chip" type="button" data-fill="Jumping mid-air with arms raised in celebration">jump celebration</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="field-row">
+        <div class="panel-label" style="margin-bottom:0;"><span class="dot"></span>03 — Reference pose</div>
+        <span class="optional-tag">optional</span>
+      </div>
+      <div class="dropzone" id="dz-ref" style="min-height:110px;margin-top:10px;">
+        <input type="file" id="input-ref" accept="image/png,image/jpeg,image/webp" hidden>
+        <div class="dz-content">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+          <div class="hint">Upload a photo of the exact pose to copy — used instead of, or alongside, the text description</div>
+        </div>
+      </div>
+
+      <div class="slider-row">
+        <label>Pose strength <span class="mono" id="strength-val">70%</span></label>
+        <input type="range" id="input-strength" min="10" max="100" value="70">
+      </div>
+
+      <button class="generate-btn" id="btn-generate" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+        Generate
+      </button>
+      <div class="error-box" id="error-box"></div>
+
+      <div class="secure-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8A8A93" stroke-width="1.8"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 11 4.6-2.3 8-6 8-11V5l-8-3Z"/></svg>
+        <span>Photos are sent over an encrypted connection straight to the generation server and are never stored on our side after processing.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: preview -->
+  <div class="preview-panel">
+    <div class="preview-head">
+      <div class="preview-toggle">
+        <button type="button" id="tab-compare" class="active">SLIDER</button>
+        <button type="button" id="tab-after">RESULT</button>
+      </div>
+      <button class="download-btn" id="btn-download" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg>
+        Download
+      </button>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="empty-state" id="empty-state">
+        <svg class="skeleton-wrap" viewBox="0 0 200 200" fill="none"><g id="empty-skeleton"></g></svg>
+        <p>Upload a photo and describe a pose to see the before/after preview here.</p>
+      </div>
+
+      <div class="compare-wrap" id="compare-wrap">
+        <span class="side-label left">BEFORE</span>
+        <span class="side-label right">AFTER</span>
+        <img id="img-after" src="" alt="Repose result">
+        <div class="after-clip" id="after-clip">
+          <img id="img-before" src="" alt="Original photo">
+        </div>
+        <div class="compare-handle" id="compare-handle"><span class="arrows">◂▸</span></div>
+        <input type="range" class="compare-range" id="compare-range" min="0" max="100" value="50">
+      </div>
+
+      <div class="single-view" id="single-after">
+        <img id="img-after-solo" src="" alt="Repose result">
+      </div>
+
+      <div class="loading-state" id="loading-state">
+        <svg class="loading-skeleton" viewBox="0 0 200 200" fill="none"><g id="loading-skeleton-g"></g></svg>
+        <div class="loading-text" id="loading-text">ANALYZING JOINTS...</div>
+        <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>REPOSE · IDENTITY-PRESERVING POSE TRANSFER</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

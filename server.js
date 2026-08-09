@@ -126,7 +126,9 @@ async function uploadToCatbox(buffer, mimeType, filename) {
 // ---------------------------------------------------------------------
 async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, prompt, strength }) {
   console.log("Connecting to Hugging Face InstantID Space...");
-  const app = await Client.connect("InstantX/InstantID");
+  const app = await Client.connect("InstantX/InstantID", {
+    hf_token: process.env.HF_TOKEN,
+  });
 
   console.log("Preparing files...");
   const faceFile = handle_file(imageBuffer);

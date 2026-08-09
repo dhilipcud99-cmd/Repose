@@ -209,9 +209,7 @@ app.post('/api/generate-pose', generateLimiter, uploadFields, async (req, res) =
     return res.json({ imageUrl: resultUrl });
   } catch (err) {
     console.error('generate-pose error:', err);
-    const safeMessage = process.env.NODE_ENV === 'production'
-      ? 'The pose model failed to generate a result. Please try again.'
-      : (err && err.message ? err.message : 'The pose model failed to generate a result.');
+    const safeMessage = err && err.message ? err.message : 'The pose model failed to generate a result.';
     return res.status(502).json({ message: safeMessage });
   }
 });

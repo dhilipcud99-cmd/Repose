@@ -146,12 +146,16 @@ async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, promp
   const controlnetStrength = hasPoseRef ? (strength / 100) : 0.0;
   const controlnetSelection = hasPoseRef ? ["depth"] : [];
 
+  // Construct a rich, photorealistic prompt emphasizing keeping background and outfit
+  const basePrompt = prompt || "standing confidently, looking at the camera";
+  const enhancedPrompt = `A photorealistic, highly detailed 8k portrait of the same person, in the pose: ${basePrompt}. Maintaining the exact same face, identity, hair, skin tone, outfit, and background. Realistic skin texture, professional photo, sharp focus.`;
+
   console.log("Calling InstantID prediction...");
   const result = await app.predict("/generate_image", {
     face_image_path: faceFile,
     pose_image_path: poseFile,
-    prompt: prompt || "a portrait of a person in the new pose",
-    negative_prompt: "(lowres, low quality, worst quality:1.2), (text:1.2), watermark, deformed, ugly, blurry, out of focus",
+    prompt: enhancedPrompt,
+    negative_prompt: "anime, cartoon, animation, illustration, 3d render, painting, drawing, sketch, deformed, ugly, blurry, out of focus, lowres, low quality, worst quality:1.2, watermark, text",
     style_name: "(No style)",
     num_steps: 30,
     identitynet_strength_ratio: 0.8,

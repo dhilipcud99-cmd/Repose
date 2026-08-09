@@ -45,8 +45,19 @@ app.use(helmet({
     },
   },
 }));
+const allowedOrigins = [
+  'https://dhilipcud99-cmd.github.io',
+  'http://localhost:3000',
+  'http://localhost:5173'
+];
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+  },
   methods: ['POST', 'GET'],
 }));
 

@@ -170,9 +170,10 @@
       formData.append('strength', strengthInput.value);
       if(state.refFile) formData.append('reference_pose', state.refFile);
 
-      // Calls your backend — see server.js. The backend holds the AI provider's
-      // API key and never exposes it to the browser.
-      const res = await fetch('/api/generate-pose', { method: 'POST', body: formData });
+      // Determine backend URL (relative for local, absolute for Render deployment)
+      const host = window.location.hostname;
+      const backendBase = (host === 'localhost' || host === '127.0.0.1') ? '' : 'https://repose-jlz4.onrender.com';
+      const res = await fetch(`${backendBase}/api/generate-pose`, { method: 'POST', body: formData });
       if(!res.ok){
         const errBody = await res.json().catch(() => ({}));
         throw new Error(errBody.message || 'Generation failed. Please try again.');

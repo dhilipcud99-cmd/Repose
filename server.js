@@ -148,7 +148,7 @@ async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, promp
 
   // Construct a rich, photorealistic prompt emphasizing keeping background and outfit
   const basePrompt = prompt || "standing confidently, looking at the camera";
-  const enhancedPrompt = `A photorealistic, highly detailed 8k portrait of the same person, in the pose: ${basePrompt}. Maintaining the exact same face, identity, hair, skin tone, outfit, and background. Realistic skin texture, professional photo, sharp focus.`;
+  const enhancedPrompt = `A high-quality, candid, hyperrealistic 8k raw photograph of the same person, in the pose: ${basePrompt}. Shot on 35mm lens, f/1.8, natural cinematic lighting, highly detailed skin texture, sharp focus. Exactly the same face, identity, hair, skin tone, outfit, and background.`;
 
   console.log("Calling InstantID prediction...");
   const result = await app.predict("/generate_image", {
@@ -158,12 +158,12 @@ async function callPoseModel({ imageBuffer, imageMime, refBuffer, refMime, promp
     negative_prompt: "anime, cartoon, animation, illustration, 3d render, painting, drawing, sketch, deformed, ugly, blurry, out of focus, lowres, low quality, worst quality:1.2, watermark, text, bad anatomy, bad proportions, deformed limbs, extra limbs, extra fingers, mutated hands, disfigured, missing limbs, disconnected limbs, floating limbs",
     style_name: "(No style)",
     num_steps: 30,
-    identitynet_strength_ratio: 0.8,
-    adapter_strength_ratio: 0.8,
+    identitynet_strength_ratio: 1.0,  // Increased from 0.8 for higher likeness
+    adapter_strength_ratio: 1.0,     // Increased from 0.8 for better style details
     canny_strength: controlnetStrength,
     depth_strength: controlnetStrength,
     controlnet_selection: controlnetSelection,
-    guidance_scale: 5,
+    guidance_scale: 7.0,             // Increased from 5.0 for stronger prompt adherence
     seed: Math.floor(Math.random() * 2147483647),
     scheduler: "EulerDiscreteScheduler",
     enable_LCM: false,

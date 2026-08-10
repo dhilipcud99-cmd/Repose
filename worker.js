@@ -63,14 +63,15 @@ async function callWorkersAI(prompt, env) {
     throw new Error('Workers AI binding is not configured. Add an AI binding named "AI" to this Worker.');
   }
 
-  const result = await env.AI.run('@cf/black-forest-labs/flux-schnell', {
+  const modelId = env.AI_MODEL || '@cf/phoenix-1';
+  const result = await env.AI.run(modelId, {
     prompt,
     size: '1024x1024',
   });
 
   const imageUrl = await extractImageUrl(result);
   if (!imageUrl) {
-    throw new Error('Cloudflare AI returned an unsupported result format.');
+    throw new Error(`Cloudflare AI returned an unsupported result format for model ${modelId}.`);
   }
 
   return imageUrl;

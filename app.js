@@ -170,10 +170,12 @@
       formData.append('strength', strengthInput.value);
       if(state.refFile) formData.append('reference_pose', state.refFile);
 
-      // Determine backend URL (relative for local, absolute for Render deployment)
+      // Use a relative endpoint for local development and Cloudflare Pages deployment.
+      // Fall back to the Render backend only if the app is running elsewhere.
       const host = window.location.hostname;
-      const backendBase = (host === 'localhost' || host === '127.0.0.1') ? '' : 'https://repose-jlz4.onrender.com';
-      const res = await fetch(`${backendBase}/api/generate-pose`, { method: 'POST', body: formData });
+      const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+      const backendBase = isLocalHost ? '' : '/api';
+      const res = await fetch(`${backendBase}/generate-pose`, { method: 'POST', body: formData });
       if(!res.ok){
         const errBody = await res.json().catch(() => ({}));
         throw new Error(errBody.message || 'Generation failed. Please try again.');

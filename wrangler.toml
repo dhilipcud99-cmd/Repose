@@ -1,0 +1,4 @@
+name = "repose"
+pages_build_output_dir = "."
+functions = "./functions"
+compatibility_date = "2024-12-01"
